@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天命所歸：八字合婚詳解</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Subtle Gold -->
+    <!-- Application Structure Plan: The SPA is designed with a user-centric, tabbed navigation structure to manage the complexity of a dual Bazi reading. The flow is: 1) A high-level 'Overview' comparing both charts side-by-side with visual aids (elemental charts). 2) Deep dives into 'Male' and 'Female' individual analyses. 3) An interactive 'Luck Cycles' timeline to visualize and explore life phases. 4) A culminating 'Compatibility Analysis' that synthesizes all information. This structure was chosen over a linear report format to empower the user to explore different facets of the analysis at their own pace, compare information easily, and grasp the core insights without being overwhelmed. It prioritizes clarity and interactive discovery. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Bazi Pillars (Four Pillars data). Goal: Inform. Viz/Method: Styled HTML tables. Interaction: Hover tooltips for details. Justification: Traditional and clear presentation of core data. Library: HTML/CSS.
+        - Report Info: Five Elements distribution. Goal: Compare/Inform. Viz/Method: Radar charts. Interaction: Visual comparison. Justification: Radar charts provide an immediate, intuitive understanding of elemental balance and imbalance for both individuals. Library: Chart.js.
+        - Report Info: 10-Year Luck Cycles (Da Yun). Goal: Explore Change over Time. Viz/Method: Horizontal bar chart acting as a timeline. Interaction: Clicking a bar updates a detailed text panel. Justification: Transforms a static table of data into an interactive life-path exploration tool, making long-term trends tangible. Library: Chart.js + Vanilla JS.
+        - Report Info: Detailed textual analysis (personality, wealth, etc.). Goal: Inform/Explain. Viz/Method: Organized text blocks within tabbed sections. Interaction: Content revealed via tab clicks. Justification: Breaks down dense information into manageable, thematic chunks, preventing user fatigue and improving comprehension. Library: Vanilla JS.
+        - All choices are designed to work within the tabbed structure to create a cohesive and interactive narrative. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .tab-active {
+            border-color: #C0A062;
+            color: #C0A062;
+            background-color: #F8F4E_E;
+        }
+        .tab-inactive {
+            border-color: transparent;
+            color: #6B7280;
+        }
+        .bazi-table {
+            border-collapse: collapse;
+            width: 100%;
+            text-align: center;
+        }
+        .bazi-table th, .bazi-table td {
+            border: 1px solid #E5E7EB;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        .bazi-table th {
+            background-color: #F3F4F6;
+        }
+        .bazi-header {
+            font-weight: 700;
+            color: #374151;
+        }
+        .bazi-stem {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            height: 50px;
+        }
+        .bazi-branch {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1F2937;
+            height: 50px;
+        }
+        .bazi-hidden {
+            font-size: 0.875rem;
+            color: #6B7280;
+            height: 40px;
+        }
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            max-height: 350px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .luck-pillar-chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+        .luck-pillar-info {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#3a2e24] tracking-wider">天命所歸</h1>
+            <p class="text-xl text-[#C0A062] mt-2">雙人八字合婚詳解</p>
+        </header>
+
+        <nav class="mb-8 border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px justify-center text-lg font-medium text-center" id="myTab" role="tablist">
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-active" id="overview-tab" type="button" role="tab" aria-controls="overview" aria-selected="true">命盤總覽</button>
+                </li>
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-inactive" id="male-tab" type="button" role="tab" aria-controls="male" aria-selected="false">男命詳解</button>
+                </li>
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-inactive" id="female-tab" type="button" role="tab" aria-controls="female" aria-selected="false">女命詳解</button>
+                </li>
+                 <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-inactive" id="luck-tab" type="button" role="tab" aria-controls="luck" aria-selected="false">十年大運</button>
+                </li>
+                <li role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-inactive" id="compatibility-tab" type="button" role="tab" aria-controls="compatibility" aria-selected="false">合婚總評</button>
+                </li>
+            </ul>
+        </nav>
+
+        <main id="myTabContent">
+            <!-- Overview Section -->
+            <div id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                <section class="bg-white/50 rounded-lg p-6 shadow-sm mb-8">
+                    <h2 class="text-2xl font-semibold text-[#3a2e24] border-l-4 border-[#C0A062] pl-4 mb-6">基本信息及命盤</h2>
+                    <p class="text-lg leading-relaxed mb-6">此處並列展示您與劉倩女士的八字命盤及五行分佈。八字，即四柱，是根據出生年月日時的天干地支排列而成，是分析個人命運的基礎。五行分佈圖直觀地揭示了命盤中木、火、土、金、水五種能量的強弱與平衡狀態，是判斷喜忌、分析性格運勢的關鍵。通過對比，我們可以初步窺見雙方命格的根本特質與互動潛力。</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-bold text-center mb-4">男命 (您)</h3>
+                            <p class="text-center text-gray-600 mb-4">公曆：2000年11月25日 卯時 (6:15)</p>
+                            <table class="bazi-table mx-auto">
+                                <thead>
+                                    <tr>
+                                        <th class="bazi-header">時柱</th>
+                                        <th class="bazi-header">日柱</th>
+                                        <th class="bazi-header">月柱</th>
+                                        <th class="bazi-header">年柱</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="bazi-stem">己 (土)</td>
+                                        <td class="bazi-stem">庚 (金)</td>
+                                        <td class="bazi-stem">丁 (火)</td>
+                                        <td class="bazi-stem">庚 (金)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bazi-branch">卯 (木)</td>
+                                        <td class="bazi-branch">寅 (木)</td>
+                                        <td class="bazi-branch">亥 (水)</td>
+                                        <td class="bazi-branch">辰 (土)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bazi-hidden">正財</td>
+                                        <td class="bazi-hidden">偏財</td>
+                                        <td class="bazi-hidden">食神</td>
+                                        <td class="bazi-hidden">偏印</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="chart-container mt-6">
+                                <canvas id="maleElementsChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-center mb-4">女命 (劉倩女士)</h3>
+                            <p class="text-center text-gray-600 mb-4">公曆：2000年2月4日 午時 (12:34)</p>
+                            <table class="bazi-table mx-auto">
+                                <thead>
+                                    <tr>
+                                        <th class="bazi-header">時柱</th>
+                                        <th class="bazi-header">日柱</th>
+                                        <th class="bazi-header">月柱</th>
+                                        <th class="bazi-header">年柱</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="bazi-stem">丙 (火)</td>
+                                        <td class="bazi-stem">丁 (火)</td>
+                                        <td class="bazi-stem">丁 (火)</td>
+                                        <td class="bazi-stem">己 (土)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bazi-branch">午 (火)</td>
+                                        <td class="bazi-branch">酉 (金)</td>
+                                        <td class="bazi-branch">丑 (土)</td>
+                                        <td class="bazi-branch">卯 (木)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bazi-hidden">劫財</td>
+                                        <td class="bazi-hidden">偏財</td>
+                                        <td class="bazi-hidden">食神</td>
+                                        <td class="bazi-hidden">偏印</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                             <div class="chart-container mt-6">
+                                <canvas id="femaleElementsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Male Details Section -->
+            <div id="male" role="tabpanel" aria-labelledby="male-tab" class="hidden">
+                 <section class="bg-white/50 rounded-lg p-6 shadow-sm">
+                    <h2 class="text-2xl font-semibold text-[#3a2e24] border-l-4 border-[#C0A062] pl-4 mb-6">男命格詳細解析</h2>
+                    <p class="text-lg leading-relaxed mb-6">本節深入剖析您的個人命盤。我們將從您的日元（代表自身的"庚金"）出發，結合四柱的干支組合，分析您的格局層次、五行喜忌、性格特點、事業財運潛力以及健康方面需要注意的事項。理解自身的優勢與挑戰，是掌握人生主動權的第一步。</p>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">1. 命格總論：庚金日主，生於亥月</h3>
+                            <p class="leading-relaxed">您的日主為庚金，屬陽金，象徵鋼鐵、刀劍，性格剛毅果決，重義氣，有不屈不撓的精神。您出生於亥月（冬季），水旺金寒，庚金之氣被旺水所洩，稱為「金水食神格」。此格局主聰明秀氣，富有才華和藝術鑑賞力。所幸年柱有庚辰，辰為濕土能生金；時柱己卯，己土為正印，能生身護衛。因此，您雖生於洩氣之月，但地支有根，天干有助，命局由弱轉為中和偏弱。最喜土來生金，金來助身，此為命局之關鍵。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">2. 五行喜忌分析</h3>
+                            <p class="leading-relaxed"><strong class="text-[#C0A062]">喜神（有利的五行）：</strong>土、金。土為印星，代表長輩、學識、房產，能給予您支持和力量；金為比劫，代表朋友、同事，能助您一臂之力。<br>
+                            <strong class="text-[#C0A062]">忌神（不利的五行）：</strong>水、木。水為食傷，雖主才華，但過旺則洩身太過，易致體弱、思慮過多；木為財星，雖主財富，但身弱不勝財，易因財致禍，求財辛苦。<br>
+                            <strong class="text-[#C0A062]">閑神（中性的五行）：</strong>火。火為官殺，代表事業、壓力。月干透丁火正官，能鍛煉庚金，使之成器，但火若過旺，亦會克身。命局需微火調候，不宜過烈。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">3. 性格、事業與財運</h3>
+                            <p class="leading-relaxed"><strong>性格：</strong>您外表剛強，內心卻感性細膩。金水食神格賦予您卓越的領悟力和表達能力，但不免有些心高氣傲。印星貼身，心地善良，重感情，也易受他人影響。<br>
+                            <strong>事業：</strong>月干丁火正官，代表您有較強的事業心和責任感，適合從事公職、管理或需要專業技術的領域。五行喜土金，從事與土（如建築、地產）或金（如金融、機械、五金）相關的行業較為有利。日坐偏財（寅木），有經商頭腦，但身弱，不宜獨立承擔過大風險，與人合作更佳。<br>
+                            <strong>財運：</strong>日柱時柱皆臨財星（寅卯木），一生不乏求財機會，但身弱財旺，有「富屋貧人」之象，即錢財來去匆匆，不易積存。需待走土金旺運時，方能發財。理財上應以穩健為主，避免投機。</p>
+                        </div>
+                         <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">4. 健康關照</h3>
+                            <p class="leading-relaxed">命局金寒水冷，應注意呼吸系統（肺、氣管）及腎臟、泌尿系統的保養。木氣亦盛，需防肝膽方面的問題。日常生活中，宜多接觸陽光，適當運動，飲食上可多補充屬土（如小米、牛肉）和屬金（如雞肉、梨）的食物，以補益元氣。</p>
+                        </div>
+                    </div>
+                 </section>
+            </div>
+
+            <!-- Female Details Section -->
+            <div id="female" role="tabpanel" aria-labelledby="female-tab" class="hidden">
+                 <section class="bg-white/50 rounded-lg p-6 shadow-sm">
+                    <h2 class="text-2xl font-semibold text-[#3a2e24] border-l-4 border-[#C0A062] pl-4 mb-6">女命格詳細解析</h2>
+                     <p class="text-lg leading-relaxed mb-6">本節專為劉倩女士的命盤進行解讀。我們將以她的日元"丁火"為核心，深入探討其命格結構、五行喜忌、性情、事業婚姻走向及健康建議。通過理解她的命運藍圖，能更好地促進夫妻間的相互理解與扶持。</p>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">1. 命格總論：丁火日主，生於丑月</h3>
+                            <p class="leading-relaxed">劉倩女士的日主為丁火，屬陰火，象徵燈燭之火，溫暖、細膩、富有同情心和洞察力。她出生於丑月（冬季末），土旺用事，晦火之光，為食神格。丁火在丑月處於休囚之地，本為身弱。但關鍵在於時柱丙午，丙為太陽之火，午為丁火之祿刃，是極強的根氣。此為「弱火見祿刃幫身」，命局由弱轉旺。因此，整個命局火勢強盛。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">2. 五行喜忌分析</h3>
+                            <p class="leading-relaxed"><strong class="text-[#C0A062]">喜神（有利的五行）：</strong>金、水、濕土。金為財星，身強能任財，代表財富與才華的發揮；水為官殺，代表事業與丈夫，能平衡過旺的火勢；濕土（如丑、辰）能洩火生金，轉化能量。<br>
+                            <strong class="text-[#C0A062]">忌神（不利的五行）：</strong>木、火。木為印星，會進一步生旺火勢，使命局失衡；火為比劫，會加劇競爭，導致固執己見。<br>
+                            <strong class="text-[#C0A062]">閑神（中性的五行）：</strong>燥土（如未、戌）。燥土雖能洩火，但有脆金之嫌，作用好壞參半。</p>
+                        </div>
+                         <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">3. 性格、事業與婚姻</h3>
+                            <p class="leading-relaxed"><strong>性格：</strong>外柔內剛，心思縝密，富有奉獻精神。丁火的溫和與時柱丙午的陽光果敢相結合，使她既有女性的柔美，又有決斷力。但火氣過旺，有時不免性急、固執，內心好強。<br>
+                            <strong>事業：</strong>日坐偏財（酉金），對金錢、商業有天生的敏感度，適合從事金融、珠寶、設計等與金相關的行業。食神格也賦予她良好的口才和藝術天賦。事業上能得朋友（比劫）之助，但也要防範因此產生的競爭和破財。 <br>
+                            <strong>婚姻：</strong>丁火女命，以水為夫星。此命局缺水，夫星不顯，通常意味著與丈夫的緣分需要後天努力培養，或者感情關係較為平淡。但日支婚姻宮為酉金喜神，代表丈夫對她有實質性的幫助，且丈夫多為精明能幹之人。身旺，個性較強，婚姻中需要學會柔和溝通。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">4. 健康關照</h3>
+                            <p class="leading-relaxed">命局火旺，需注意心臟、血液循環及眼睛方面的問題。火旺亦克金，應留意呼吸系統。五行缺水，要關注腎臟和泌尿系統的健康。建議日常多飲水，多食黑色食物（如黑豆、黑芝麻）以補水，保持心境平和。</p>
+                        </div>
+                    </div>
+                 </section>
+            </div>
+            
+            <!-- Luck Section -->
+            <div id="luck" role="tabpanel" aria-labelledby="luck-tab" class="hidden">
+                 <section class="bg-white/50 rounded-lg p-6 shadow-sm">
+                    <h2 class="text-2xl font-semibold text-[#3a2e24] border-l-4 border-[#C0A062] pl-4 mb-6">十年大運走勢</h2>
+                    <p class="text-lg leading-relaxed mb-6">"命好不如運好"，大運是指每十年一變的人生階段性能量場。這裡通過圖表展示您二人未來數十年的大運走向。點擊圖表中不同的人生階段，下方將顯示該十年的運勢簡析，揭示機遇與挑戰所在。這有助於您們更好地規劃人生，順勢而為。</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-bold text-center mb-4">男命大運</h3>
+                            <div class="luck-pillar-chart-container">
+                                <canvas id="maleLuckPillarChart"></canvas>
+                            </div>
+                            <div id="maleLuckInfo" class="mt-4 p-4 bg-gray-50 rounded-lg luck-pillar-info min-h-[150px]">
+                                <p class="text-gray-600">點擊上方圖表查看對應大運的簡析。</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-center mb-4">女命大運</h3>
+                            <div class="luck-pillar-chart-container">
+                                <canvas id="femaleLuckPillarChart"></canvas>
+                            </div>
+                            <div id="femaleLuckInfo" class="mt-4 p-4 bg-gray-50 rounded-lg luck-pillar-info min-h-[150px]">
+                                <p class="text-gray-600">點擊上方圖表查看對應大運的簡析。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Compatibility Section -->
+            <div id="compatibility" role="tabpanel" aria-labelledby="compatibility-tab" class="hidden">
+                <section class="bg-white/50 rounded-lg p-6 shadow-sm">
+                    <h2 class="text-2xl font-semibold text-[#3a2e24] border-l-4 border-[#C0A062] pl-4 mb-6">天作之合：合婚總評</h2>
+                    <p class="text-lg leading-relaxed mb-6">合婚的根本在於判斷兩人結合後，能否在性格、運勢上相互補益，共同創造更美好的人生。本節將從日主關係、五行互補、地支互動等多個維度，綜合評估您與劉倩女士的婚配契合度，並提出經營婚姻的建議，旨在助您們琴瑟和鳴，白頭偕老。</p>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">1. 日主關係：丁火煉庚金，相得益彰</h3>
+                            <p class="leading-relaxed">您的日主庚金，需火來鍛煉方能成器；劉女士的日主丁火，其本性即為鍛煉庚金之火。此為命理中經典的良配，稱為「火煉真金」。這意味著在關係中，妻子的溫暖、智慧與鞭策，能激發丈夫的潛能，助其成就事業；而丈夫的剛毅與目標感，也給予妻子堅實的依靠。這是一種相互成就、共同成長的理想關係模式。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">2. 五行互補：寒暖燥濕，完美調候</h3>
+                            <p class="leading-relaxed">這是您們八字中最為精彩的部分。您的命局金寒水冷，急需火來調候取暖。劉女士的命局火勢旺盛，恰好能為您帶來所缺的陽光與溫暖。反之，劉女士命局火旺為病，喜金水來平衡。您的命局以金為體，且帶有亥水，正好能為她帶來清涼與滋潤。二人結合，如同寒冬遇暖陽，炎夏得甘泉，在命理層面達成了完美的五行互補。這種互補性是夫妻關係長期穩定、彼此舒適的基石。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">3. 地支互動與子女緣</h3>
+                            <p class="leading-relaxed"><strong>地支關係：</strong>雙方年柱為「卯辰相害」，日柱為「寅酉相絕」。這代表在生活中可能存在一些小的摩擦或價值觀上的細微差異，尤其可能體現在與原生家庭的關係上（年柱代表根基）。「寅酉絕」暗示夫妻宮的能量場有時會存在互不理解的狀況。但這些都屬於可磨合的小問題，在強大的五行互補面前，影響甚微。<br>
+                            <strong>子女緣：</strong>男命以官殺（火）為子女，您命局透出丁火正官，子女緣分不薄。女命以食傷（土）為子女，她命局食神當令，且年柱透出己土，子女緣分亦佳。綜合來看，您們的子女緣分是深厚的，且孩子將會是聰明伶俐之人。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-[#3a2e24] mb-2">4. 綜合建議與結論</h3>
+                            <p class="leading-relaxed">綜合來看，您與劉倩女士的八字配對，堪稱上等婚配。日主相合，五行完美互補，這是千金難求的緣分。雖然地支存在一些小的瑕疵，但這正是現實婚姻的體現——沒有絕對的完美，需要雙方共同經營。 <br><br>
+                            <strong>給您的建議：</strong>學會欣賞妻子的鞭策與督促，將其視為您成長的動力。在家庭事務中，多一份柔情，少一分剛硬。<br>
+                            <strong>給劉女士的建議：</strong>發揮丁火的溫暖特質，給予丈夫支持與鼓勵。在溝通時，注意控制火旺帶來的急躁情緒，多些耐心。<br><br>
+                            您們的結合，是能量的完美契合，是命運的精心安排。只要彼此珍視，用心經營，定能相濡以沫，共創幸福美滿的人生。</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>本分析報告依據傳統八字命理學術理論編撰，僅供參考，旨在弘揚傳統文化。命運掌握在自己手中，積極的人生態度方為根本。</p>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('[role="tab"]');
+    const tabContents = document.querySelectorAll('[role="tabpanel"]');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => {
+                t.classList.remove('tab-active');
+                t.classList.add('tab-inactive');
+                t.setAttribute('aria-selected', 'false');
+            });
+            tab.classList.add('tab-active');
+            tab.classList.remove('tab-inactive');
+            tab.setAttribute('aria-selected', 'true');
+
+            tabContents.forEach(content => {
+                if (content.id === tab.getAttribute('aria-controls')) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                angleLines: { display: true, color: '#e5e7eb' },
+                grid: { color: '#e5e7eb' },
+                pointLabels: {
+                    font: { size: 14, family: "'Noto Serif SC', serif" },
+                    color: '#374151'
+                },
+                ticks: {
+                    backdropColor: 'transparent',
+                    color: '#6b7280',
+                    stepSize: 20
+                },
+                min: 0,
+                max: 100
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    font: { size: 12, family: "'Noto Serif SC', serif" },
+                     color: '#4A4A4A'
+                }
+            },
+             tooltip: {
+                bodyFont: { family: "'Noto Serif SC', serif" },
+                titleFont: { family: "'Noto Serif SC', serif" }
+            }
+        }
+    };
+
+    const maleElementsData = {
+        labels: ['木 (財)', '火 (官)', '土 (印)', '金 (比)', '水 (食)'],
+        datasets: [{
+            label: '男命五行分佈 (%)',
+            data: [30, 10, 25, 20, 15],
+            backgroundColor: 'rgba(67, 119, 179, 0.2)',
+            borderColor: 'rgba(67, 119, 179, 1)',
+            pointBackgroundColor: 'rgba(67, 119, 179, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(67, 119, 179, 1)',
+            borderWidth: 2
+        }]
+    };
+
+    const femaleElementsData = {
+        labels: ['木 (印)', '火 (比)', '土 (食)', '金 (財)', '水 (官)'],
+        datasets: [{
+            label: '女命五行分佈 (%)',
+            data: [15, 45, 20, 20, 0],
+            backgroundColor: 'rgba(214, 103, 116, 0.2)',
+            borderColor: 'rgba(214, 103, 116, 1)',
+            pointBackgroundColor: 'rgba(214, 103, 116, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(214, 103, 116, 1)',
+            borderWidth: 2
+        }]
+    };
+
+    new Chart(document.getElementById('maleElementsChart'), {
+        type: 'radar',
+        data: maleElementsData,
+        options: chartOptions,
+    });
+
+    new Chart(document.getElementById('femaleElementsChart'), {
+        type: 'radar',
+        data: femaleElementsData,
+        options: chartOptions,
+    });
+    
+    const maleLuckData = {
+        labels: ['5-14 (戊子)', '15-24 (己丑)', '25-34 (庚寅)', '35-44 (辛卯)', '45-54 (壬辰)', '55-64 (癸巳)'],
+        datasets: [{
+            label: '運勢',
+            data: [60, 75, 85, 70, 50, 65],
+            backgroundColor: 'rgba(67, 119, 179, 0.6)',
+            borderColor: 'rgba(67, 119, 179, 1)',
+            borderWidth: 1,
+            barThickness: 30,
+        }]
+    };
+
+    const femaleLuckData = {
+        labels: ['3-12 (丙子)', '13-22 (乙亥)', '23-32 (甲戌)', '33-42 (癸酉)', '43-52 (壬申)', '53-62 (辛未)'],
+        datasets: [{
+            label: '運勢',
+            data: [40, 50, 65, 85, 90, 70],
+            backgroundColor: 'rgba(214, 103, 116, 0.6)',
+            borderColor: 'rgba(214, 103, 116, 1)',
+            borderWidth: 1,
+            barThickness: 30,
+        }]
+    };
+    
+    const maleLuckInfo = [
+        '<strong>5-14歲 (戊子運):</strong> 戊土印星生身，子水傷官洩秀。少年時期聰明好學，但略帶叛逆，家庭環境較為平順。',
+        '<strong>15-24歲 (己丑運):</strong> 干支皆為正印，是人生中讀書求學、打好基礎的黃金時期。丑土為喜神，能得長輩師長之助，學業順利，身心安穩。',
+        '<strong>25-34歲 (庚寅運):</strong> 庚金比肩幫身，寅木偏財臨旺。此十年開始獨立闖蕩，求財機會增多，事業心強。但寅亥合木，財旺身仍弱，機遇與挑戰並存，宜合作求財，穩步發展。',
+        '<strong>35-44歲 (辛卯運):</strong> 辛金劫財幫身，卯木正財得祿。財運依然旺盛，但競爭也加劇。需謹慎處理人際關係和財務往來，防因友破財。',
+        '<strong>45-54歲 (壬辰運):</strong> 壬水食神透出，辰土印星為根。辰為喜神，事業根基穩固，能發揮才華，名聲提升。但壬水洩身，需注意精力消耗，勞逸結合。',
+        '<strong>55-64歲 (癸巳運):</strong> 巳亥相沖，驛馬奔波。此運變動較多，巳中丙火七殺克身，事業壓力增大。但巳中亦有戊土長生，危中有機，需沉著應對。'
+    ];
+    
+    const femaleLuckInfo = [
+        '<strong>3-12歲 (丙子運):</strong> 丙火劫財幫身，子水官星克火。子午沖，子丑合，早年生活環境略有波動，但聰明伶俐，個性好強。',
+        '<strong>13-22歲 (乙亥運):</strong> 乙木印星生火，亥水官星臨旺。此運學業壓力不小，但亥水為夫星，感情方面易有萌動。亥卯半合木，印星力量增強，內心想法多，略有煩惱。',
+        '<strong>23-32歲 (甲戌運):</strong> 甲木正印，戌為傷官庫。此十年事業上想法多，追求自我實現。但甲己合，戌丑刑，內心易有矛盾糾結，婚姻感情需要磨合。',
+        '<strong>33-42歲 (癸酉運):</strong> 癸水七殺透出，酉金偏財為根。此為一生中事業財運的最佳時期之一。官星有根，財來生官，名利雙收，夫運亦佳。',
+        '<strong>43-52歲 (壬申運):</strong> 壬水正官，申金正財。干支財官相生，運勢繼續走高，事業穩固，財富積累可觀。申酉戌三會金局，財氣極旺，是人生輝煌階段。',
+        '<strong>53-62歲 (辛未運):</strong> 辛金偏財，未土食神。未為燥土，與命局丑未沖，午未合。此運食神生財，仍有不錯的財運，但生活及健康方面波動較大，需注意保養。'
+    ];
+
+    const luckChartOptions = {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                display: false,
+                min: 0,
+                max: 100
+            },
+            y: {
+                ticks: {
+                    font: { size: 14, family: "'Noto Serif SC', serif" },
+                    color: '#374151'
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                enabled: false
+            }
+        },
+        onClick: (event, elements) => {
+            if (elements.length > 0) {
+                const chartId = event.chart.canvas.id;
+                const index = elements[0].index;
+                let infoPanel, infoArray;
+                
+                if (chartId === 'maleLuckPillarChart') {
+                    infoPanel = document.getElementById('maleLuckInfo');
+                    infoArray = maleLuckInfo;
+                } else {
+                    infoPanel = document.getElementById('femaleLuckInfo');
+                    infoArray = femaleLuckInfo;
+                }
+                
+                infoPanel.style.opacity = 0;
+                setTimeout(() => {
+                    infoPanel.innerHTML = `<p class="leading-relaxed">${infoArray[index]}</p>`;
+                    infoPanel.style.opacity = 1;
+                }, 300);
+            }
+        }
+    };
+    
+    new Chart(document.getElementById('maleLuckPillarChart'), {
+        type: 'bar',
+        data: maleLuckData,
+        options: luckChartOptions
+    });
+    
+    new Chart(document.getElementById('femaleLuckPillarChart'), {
+        type: 'bar',
+        data: femaleLuckData,
+        options: luckChartOptions
+    });
+});
+</script>
+</body>
+</html>
