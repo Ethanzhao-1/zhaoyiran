@@ -53,4 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayError(message) {
         resultContainer.innerHTML = `
             <div class="error">
-                <h3
+                <h3>计算时发生错误</h3>
+                <p>${message}</p>
+                <p>请检查您的输入或刷新页面重试。</p>
+            </div>
+        `;
+    }
+
+    // 渲染四柱八字表格
+    function displayBaziChart(pillars) {
+        const container = document.getElementById('bazi-chart');
+        container.innerHTML = `
+            <div class="
