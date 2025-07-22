@@ -1,24 +1,19 @@
-/* 样式重置 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* 通用样式 */
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f0f0f0;
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: #f9f5ef;
     color: #333;
+    line-height: 1.6;
+    padding: 20px;
 }
 
 .container {
-    width: 80%;
     max-width: 900px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 header {
@@ -26,82 +21,38 @@ header {
     margin-bottom: 20px;
 }
 
-header h1 {
-    font-size: 28px;
-    color: #2c3e50;
-}
-
-.input-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group label {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
 input, select, button {
     padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
+    margin: 10px 0;
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid #ddd;
 }
 
 button {
-    background-color: #2ecc71;
-    color: #fff;
+    background-color: #8a6d3b;
+    color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #27ae60;
+    background-color: #7a5f31;
 }
 
-/* 结果区域 */
 .hidden {
     display: none;
 }
 
-#result-container {
-    margin-top: 20px;
-}
-
+/* 结果部分 */
 .result-section {
     margin-bottom: 20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #ddd;
-}
-
-th {
-    background-color: #f1f1f1;
-}
-
-/* 错误提示 */
-#error {
-    color: red;
-}
-
-/* 响应式设计 */
-@media (max-width: 600px) {
-    .container {
-        width: 90%;
-    }
+.error {
+    background-color: #ffebee;
+    padding: 15px;
+    border-radius: 6px;
+    color: #b71c1c;
 }
