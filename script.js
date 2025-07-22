@@ -1,67 +1,139 @@
 document.addEventListener('DOMContentLoaded', () => {
     const calculateBtn = document.getElementById('calculate-btn');
     const resultContainer = document.getElementById('result-container');
-    const loadingIndicator = document.getElementById('loading');
 
-    // 计算按钮点击事件
     calculateBtn.addEventListener('click', () => {
-        resultContainer.innerHTML = ''; // 清空旧结果
-        loadingIndicator.classList.remove('hidden'); // 显示加载中提示
-
+        // 1. 获取用户输入
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = document.getElementById('birth-time').value;
-        const birthPlace = document.getElementById('birth-place').value;
         const gender = document.getElementById('gender').value;
 
-        if (!birthDate || !birthTime || !birthPlace) {
-            alert('请输入完整的出生日期、时间和出生地。');
-            loadingIndicator.classList.add('hidden'); // 隐藏加载中提示
+        if (!birthDate ||!birthTime) {
+            alert('请输入完整的出生日期和时间。');
             return;
         }
 
         const [year, month, day] = birthDate.split('-').map(Number);
         const [hour, minute] = birthTime.split(':').map(Number);
 
+        // 2. 调用 Bazi 引擎进行计算
         try {
-            const baziData = calculateBazi(year, month, day, hour, minute, gender, birthPlace);
+            const baziData = calculateBazi(year, month, day, hour, minute, gender);
+            
+            // 3. 显示结果
             displayResults(baziData);
-        } catch (error) {
-            console.error("计算或显示时发生错误:", error);
-            displayError(error.message);
-        } finally {
-            loadingIndicator.classList.add('hidden');
             resultContainer.classList.remove('hidden');
+        } catch (error) {
+            console.error("计算出错:", error);
+            alert("计算时发生错误，请检查您的输入。错误信息: " + error.message);
         }
     });
 
-    // 显示结果
     function displayResults(data) {
-        resultContainer.innerHTML = `
-            <h2>命盘分析结果</h2>
-            <div id="bazi-chart"></div>
-            <div id="day-master-info"></div>
-            <div id="luck-pillars"></div>
-            <div id="ten-gods-info"></div>
-        `;
         displayBaziChart(data.fourPillars);
         displayDayMasterInfo(data.dayMaster);
         displayLuckPillars(data.luckPillars);
-        displayTenGodsInfo(data.tenGods);
+        displayTenGodsInfo(data.tenGods, data.fourPillars);
     }
 
-    // 显示错误信息
-    function displayError(message) {
-        resultContainer.innerHTML = `
-            <div class="error">
-                <h3>计算时发生错误</h3>
-                <p>${message}</p>
-                <p>请检查您的输入或刷新页面重试。</p>
+    function displayBaziChart(pillars) {
+        const container = document.getElementById('bazi-chart');
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>四柱八字</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>年柱</th>
+                            <th>月柱</th>
+                            <th>日柱</th>
+                            <th>时柱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>天干</strong></td>
+                            <td>${pillars.year[0]}</td>
+                            <td>${pillars.month[0]}</td>
+                            <td>${pillars.day[0]}</td>
+                            <td>${pillars.hour[0]}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>地支</strong></td>
+                            <td>${pillars.year[1]}</td>
+                            <td>${pillars.month[1]}</td>
+                            <td>${pillars.day[1]}</td>
+                            <td>${pillars.hour[1]}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         `;
     }
 
-    // 渲染四柱八字表格
-    function displayBaziChart(pillars) {
-        const container = document.getElementById('bazi-chart');
+    function displayDayMasterInfo(dayMaster) {
+        const container = document.getElementById('day-master-info');
         container.innerHTML = `
-            <div class="
+            <div class="result-section">
+                <h3>日主信息</h3>
+                <p>您的日主（日元）是：<strong>${dayMaster.gan} (${dayMaster.element})</strong></p>
+                <p>日主代表命主本人，是整个八字分析的核心。</p>
+            </div>
+        `;
+    }
+
+    function displayLuckPillars(luckPillars) {
+        const container = document.getElementById('luck-pillars');
+        let pillarsHtml = luckPillars.map(p => `
+            <div class="luck-pillar-item">
+                <div class="age">${p.startAge} - ${p.endAge}岁</div>
+                <div class="ganzhi">${p.ganZhi}</div>
+            </div>
+        `).join('');
+
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>十年大运</h3>
+                <div class="luck-pillar-grid">${pillarsHtml}</div>
+            </div>
+        `;
+    }
+
+    function displayTenGodsInfo(tenGods, pillars) {
+        const container = document.getElementById('ten-gods-info');
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>十神信息</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>年柱</th>
+                            <th>月柱</th>
+                            <th>日柱</th>
+                            <th>时柱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>天干</strong></td>
+                            <td>${tenGods.year}</td>
+                            <td>${tenGods.month}</td>
+                            <td>(日主)</td>
+                            <td>${tenGods.hour}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>地支</strong></td>
+                            <td>${pillars.year[1]}</td>
+                            <td>${pillars.month[1]}</td>
+                            <td>${pillars.day[1]} (${tenGods.day})</td>
+                            <td>${pillars.hour[1]}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息。</p>
+            </div>
+        `;
+    }
+});
