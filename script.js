@@ -16,26 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const [year, month, day] = birthDate.split('-').map(Number);
         const [hour, minute] = birthTime.split(':').map(Number);
 
-        // 2. 调用 Bazi 引擎进行计算
+        // 2. 调用 Bazi 引擎进行计算，并用 try...catch 捕获任何潜在错误
         try {
             const baziData = calculateBazi(year, month, day, hour, minute, gender);
             
-            // 3. 显示结果
+            // 3. 将计算结果传递给显示函数
             displayResults(baziData);
             resultContainer.classList.remove('hidden');
         } catch (error) {
-            console.error("计算出错:", error);
-            alert("计算时发生错误，请检查您的输入。");
+            console.error("计算或显示时发生错误:", error);
+            alert("计算时发生错误，请检查您的输入或刷新页面重试。");
         }
     });
 
+    // 主显示函数，调用各个子函数来渲染不同模块
     function displayResults(data) {
         displayBaziChart(data.fourPillars);
         displayDayMasterInfo(data.dayMaster);
         displayLuckPillars(data.luckPillars);
-        displayTenGodsInfo(data.tenGods, data.fourPillars);
+        displayTenGodsInfo(data.tenGods);
     }
 
+    // 渲染四柱八字表格
     function displayBaziChart(pillars) {
         const container = document.getElementById('bazi-chart');
         container.innerHTML = `
@@ -72,17 +74,19 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    // 渲染日主信息
     function displayDayMasterInfo(dayMaster) {
         const container = document.getElementById('day-master-info');
         container.innerHTML = `
             <div class="result-section">
                 <h3>日主信息</h3>
                 <p>您的日主（日元）是：<strong>${dayMaster.gan} (${dayMaster.element})</strong></p>
-                <p>日主代表命主本人，是整个八字分析的核心 [9, 10]。</p>
+                <p>日主代表命主本人，是整个八字分析的核心 [2]。</p>
             </div>
         `;
     }
 
+    // 渲染十年大运
     function displayLuckPillars(luckPillars) {
         const container = document.getElementById('luck-pillars');
         let pillarsHtml = luckPillars.map(p => `
@@ -100,7 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function displayTenGodsInfo(tenGods, pillars) {
+    // 渲染十神信息表格
+    function displayTenGodsInfo(tenGods) {
         const container = document.getElementById('ten-gods-info');
         container.innerHTML = `
             <div class="result-section">
@@ -118,21 +123,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>
                         <tr>
                             <td><strong>天干</strong></td>
-                            <td>${tenGods.year}</td>
-                            <td>${tenGods.month}</td>
-                            <td>(日主)</td>
-                            <td>${tenGods.hour}</td>
+                            <td>${tenGods.year.gan}</td>
+                            <td>${tenGods.month.gan}</td>
+                            <td>${tenGods.day.gan}</td>
+                            <td>${tenGods.hour.gan}</td>
                         </tr>
                         <tr>
-                            <td><strong>地支</strong></td>
-                            <td>${pillars.year.zhi}</td>
-                            <td>${pillars.month.zhi}</td>
-                            <td>${pillars.day.zhi} (${tenGods.day})</td>
-                            <td>${pillars.hour.zhi}</td>
+                            <td><strong>地支藏干</strong></td>
+                            <td>${tenGods.year.zhi}</td>
+                            <td>${tenGods.month.zhi}</td>
+                            <td>${tenGods.day.zhi}</td>
+                            <td>${tenGods.hour.zhi}</td>
                         </tr>
                     </tbody>
                 </table>
-                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息 [11, 12, 13]。</p>
+                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息 [3, 4]。</p>
             </div>
         `;
     }
