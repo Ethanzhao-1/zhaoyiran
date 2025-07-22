@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultContainer = document.getElementById('result-container');
 
     calculateBtn.addEventListener('click', () => {
+        resultContainer.innerHTML = ''; // 清空旧结果
         // 1. 获取用户输入
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = document.getElementById('birth-time').value;
@@ -19,22 +20,39 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. 调用 Bazi 引擎进行计算，并用 try...catch 捕获任何潜在错误
         try {
             const baziData = calculateBazi(year, month, day, hour, minute, gender);
-            
-            // 3. 将计算结果传递给显示函数
             displayResults(baziData);
-            resultContainer.classList.remove('hidden');
         } catch (error) {
             console.error("计算或显示时发生错误:", error);
-            alert("计算时发生错误，请检查您的输入或刷新页面重试。");
+            displayError(error.message);
+        } finally {
+            resultContainer.classList.remove('hidden');
         }
     });
 
-    // 主显示函数，调用各个子函数来渲染不同模块
+    // 主显示函数
     function displayResults(data) {
+        resultContainer.innerHTML = `
+            <h2>命盘分析结果</h2>
+            <div id="bazi-chart"></div>
+            <div id="day-master-info"></div>
+            <div id="luck-pillars"></div>
+            <div id="ten-gods-info"></div>
+        `;
         displayBaziChart(data.fourPillars);
         displayDayMasterInfo(data.dayMaster);
         displayLuckPillars(data.luckPillars);
         displayTenGodsInfo(data.tenGods);
+    }
+
+    // 显示错误信息
+    function displayError(message) {
+        resultContainer.innerHTML = `
+            <div class="error">
+                <h3>计算时发生错误</h3>
+                <p>${message}</p>
+                <p>请检查您的输入或刷新页面重试。</p>
+            </div>
+        `;
     }
 
     // 渲染四柱八字表格
@@ -107,33 +125,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // 渲染十神信息表格
     function displayTenGodsInfo(tenGods) {
         const container = document.getElementById('ten-gods-info');
+        // 辅助函数，确保地支十神总是数组并用'/'连接
+        const formatZhi = (zhi) => Array.isArray(zhi)? zhi.join(' / ') : zhi;
+
         container.innerHTML = `
             <div class="result-section">
                 <h3>十神信息</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th></th>
-                            <th>年柱</th>
-                            <th>月柱</th>
-                            <th>日柱</th>
-                            <th>时柱</th>
+                            <th>柱位</th>
+                            <th>天干十神</th>
+                            <th>地支十神</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>天干</strong></td>
+                            <td><strong>年柱</strong></td>
                             <td>${tenGods.year.gan}</td>
-                            <td>${tenGods.month.gan}</td>
-                            <td>${tenGods.day.gan}</td>
-                            <td>${tenGods.hour.gan}</td>
+                            <td>${formatZhi(tenGods.year.zhi)}</td>
                         </tr>
                         <tr>
-                            <td><strong>地支藏干</strong></td>
-                            <td>${tenGods.year.zhi}</td>
-                            <td>${tenGods.month.zhi}</td>
-                            <td>${tenGods.day.zhi}</td>
-                            <td>${tenGods.hour.zhi}</td>
+                            <td><strong>月柱</strong></td>
+                            <td>${tenGods.month.gan}</td>
+                            <td>${formatZhi(tenGods.month.zhi)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>日柱</strong></td>
+                            <td>${tenGods.day.gan}</td>
+                            <td>${formatZhi(tenGods.day.zhi)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>时柱</strong></td>
+                            <td>${tenGods.hour.gan}</td>
+                            <td>${formatZhi(tenGods.hour.zhi)}</td>
                         </tr>
                     </tbody>
                 </table>
