@@ -4,7 +4,7 @@
  * 使用 lunar-javascript 库 (https://github.com/6tail/lunar-javascript)
  */
 function calculateBazi(year, month, day, hour, minute, gender) {
-    // 1. 添加输入验证 (已修复语法错误)
+    // 1. 添加输入验证
     if (year < 1900 |
 
 | year > 2100) throw new Error('年份超出支持范围 (1900-2100)。');
