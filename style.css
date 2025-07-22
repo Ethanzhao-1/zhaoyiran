@@ -1,79 +1,107 @@
-// 核心八字计算引擎 - 加入大运排法和阴阳年判断
-function calculateBazi(year, month, day, hour, minute, gender, place) {
-    // 输入验证
-    if (year < 1900 || year > 2100) throw new Error('年份超出支持范围 (1900-2100)。');
-    if (month < 1 || month > 12) throw new Error('无效的月份。');
-
-    // 根据出生地获取时区
-    const timezoneOffset = getTimezoneOffsetFromPlace(place);
-    hour = (hour + timezoneOffset + 24) % 24;
-
-    // 创建Solar对象
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    const lunar = solar.getLunar();
-    const baziChart = lunar.getEightChar();
-
-    // 计算大运
-    const yun = baziChart.getYun(gender === 'male' ? 1 : 0);
-    const startAge = yun.getStartAge();
-    const daYunList = yun.getDaYun();
-    
-    const luckPillars = daYunList.map((daYun, index) => {
-        const isYangYear = isYangYear(baziChart.getMonthGan());
-        const luck = isYangYear ? "顺排" : "逆排";  // 阴阳年判断
-        return {
-            startAge: startAge + index * 10,
-            endAge: startAge + index * 10 + 9,
-            ganZhi: daYun.getGanZhi(),
-            luck
-        };
-    });
-
-    // 完整的十神信息
-    const tenGods = {
-        year: {
-            gan: baziChart.getYearShiShenGan(),
-            zhi: baziChart.getYearShiShenZhi()
-        },
-        month: {
-            gan: baziChart.getMonthShiShenGan(),
-            zhi: baziChart.getMonthShiShenZhi()
-        },
-        day: {
-            gan: "日主", 
-            zhi: baziChart.getDayShiShenZhi()
-        },
-        hour: {
-            gan: baziChart.getTimeShiShenGan(),
-            zhi: baziChart.getTimeShiShenZhi()
-        }
-    };
-
-    return {
-        fourPillars: {
-            year: { gan: baziChart.getYearGan(), zhi: baziChart.getYearZhi() },
-            month: { gan: baziChart.getMonthGan(), zhi: baziChart.getMonthZhi() },
-            day: { gan: baziChart.getDayGan(), zhi: baziChart.getDayZhi() },
-            hour: { gan: baziChart.getTimeGan(), zhi: baziChart.getTimeZhi() }
-        },
-        dayMaster: {
-            gan: baziChart.getDayGan(),
-            element: baziChart.getDayGanWuXing()
-        },
-        luckPillars,
-        tenGods
-    };
+/* 样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-// 判断是否为阳年
-function isYangYear(monthGan) {
-    const yangYears = ['甲', '丙', '戊', '庚', '王'];
-    return yangYears.includes(monthGan);
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
 }
 
-// 获取时区偏移
-function getTimezoneOffsetFromPlace(place) {
-    if (place === "北京") return 8;
-    if (place === "纽约") return -5;
-    return 0;
+.container {
+    width: 80%;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #2c3e50;
+}
+
+.input-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input, select, button {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    background-color: #2ecc71;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #27ae60;
+}
+
+/* 结果区域 */
+.hidden {
+    display: none;
+}
+
+#result-container {
+    margin-top: 20px;
+}
+
+.result-section {
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #f1f1f1;
+}
+
+/* 错误提示 */
+#error {
+    color: red;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+    }
 }
