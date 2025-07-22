@@ -1,57 +1,57 @@
 /**
- * Bazi Engine - 核心八字计算引擎 (最终调试修复版)
+ * Bazi Engine - 封装所有八字计算逻辑
+ * 使用 lunar-javascript 库 (https://github.com/6tail/lunar-javascript)
  */
-function calculateBazi(year, month, day, hour, minute, gender, birthPlace) {
-    if (year < 1900 || year > 2100) throw new Error('年份超出支持范围 (1900-2100)。');
-    if (month < 1 || month > 12) throw new Error('无效的月份。');
 
-    // 创建Solar对象
-    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+function calculateBazi(year, month, day, hour, minute, gender) {
+    // 处理23:30-24:00时间段（属于次日的子时）
+    let adjustedDate = new Date(year, month - 1, day, hour, minute);
+    if (hour === 23 && minute >= 30) {
+        adjustedDate = new Date(adjustedDate.getTime() + 30 * 60000);
+        year = adjustedDate.getFullYear();
+        month = adjustedDate.getMonth() + 1;
+        day = adjustedDate.getDate();
+        hour = 0;
+    }
+
+    // 使用lunar-javascript库计算
+    const solar = new Solar(year, month, day, hour, minute, 0);
     const lunar = solar.getLunar();
     const baziChart = lunar.getEightChar();
 
-    // 修复大运计算
-    const yun = baziChart.getYun(gender === 'male' ? 1 : 0);
-    const startAge = yun.getStartAge();
-    const daYunList = yun.getDaYun();
+    // 获取大运信息（修正参数传递）
+    const luckPillars = baziChart.getYun(gender === 'male' ? 1 : 0, 0).getDaYun();
 
-    const luckPillars = daYunList.map((daYun, index) => ({
-        startAge: startAge + index * 10,
-        endAge: startAge + index * 10 + 9,
-        ganZhi: daYun.getGanZhi()
-    }));
+    // 获取日主信息
+    const dayMaster = baziChart.getDayGan();
+    const dayMasterElement = baziChart.getDayGanWuXing();
 
-    const tenGods = {
-        year: {
-            gan: baziChart.getYearShiShenGan(),
-            zhi: baziChart.getYearShiShenZhi()
-        },
-        month: {
-            gan: baziChart.getMonthShiShenGan(),
-            zhi: baziChart.getMonthShiShenZhi()
-        },
-        day: {
-            gan: "日主", // 特殊标记日主
-            zhi: baziChart.getDayShiShenZhi()
-        },
-        hour: {
-            gan: baziChart.getTimeShiShenGan(),
-            zhi: baziChart.getTimeShiShenZhi()
-        }
-    };
+    // 获取十神（修正日支十神处理）
+    const dayZhiShen = baziChart.getDayShiShenZhi();
+    const formattedDayZhi = Array.isArray(dayZhiShen) ? dayZhiShen.join('/') : dayZhiShen;
 
+    // 返回结构化结果
     return {
         fourPillars: {
-            year: { gan: baziChart.getYearGan(), zhi: baziChart.getYearZhi() },
-            month: { gan: baziChart.getMonthGan(), zhi: baziChart.getMonthZhi() },
-            day: { gan: baziChart.getDayGan(), zhi: baziChart.getDayZhi() },
-            hour: { gan: baziChart.getTimeGan(), zhi: baziChart.getTimeZhi() }
+            year: baziChart.getYear(),
+            month: baziChart.getMonth(),
+            day: baziChart.getDay(),
+            hour: baziChart.getTime()
         },
         dayMaster: {
-            gan: baziChart.getDayGan(),
-            element: baziChart.getDayGanWuXing()
+            gan: dayMaster,
+            element: dayMasterElement
         },
-        luckPillars,
-        tenGods
+        luckPillars: luckPillars.map(p => ({
+            startAge: p.getStartYear(),
+            endAge: p.getStartYear() + 9,
+            ganZhi: p.getGanZhi()
+        })),
+        tenGods: {
+            year: baziChart.getYearShiShenGan(),
+            month: baziChart.getMonthShiShenGan(),
+            day: formattedDayZhi,
+            hour: baziChart.getTimeShiShenGan()
+        }
     };
 }
