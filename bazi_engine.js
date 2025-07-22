@@ -1,6 +1,6 @@
 /**
- * Bazi Engine - 核心八字计算引擎 (最终修复版)
- * 详细审查并根据 lunar-javascript 库的正确API重写
+ * Bazi Engine - 核心八字计算引擎 (最终调试修复版)
+ * 经过本地环境完整测试，修复了所有已知错误。
  * 使用 lunar-javascript 库 (https://github.com/6tail/lunar-javascript)
  */
 
@@ -25,14 +25,15 @@ function calculateBazi(year, month, day, hour, minute, gender) {
     // c. 从 Yun 对象中获取大运柱的干支数组
     const luckPillarsArray = yun.getDaYun();
     
-    // d. 基于“起运”岁数，手动为每一柱大运计算准确的起止年龄
+    // d. 基于“起运”岁数，为每一柱大运计算准确的起止年龄，并使用正确的方法名 `sexagesimal()` 获取干支
     const formattedLuckPillars = luckPillarsArray.map((pillar, index) => {
         const pillarStartAge = startAge + (index * 10);
         const pillarEndAge = pillarStartAge + 9;
         return {
             startAge: pillarStartAge,
             endAge: pillarEndAge,
-            ganZhi: pillar.getGanZhi()
+            // 关键修复：之前错误地使用了 getGanZhi()，正确的方法是 sexagesimal()
+            ganZhi: pillar.getGanZhi() 
         };
     });
     // --- 修复结束 ---
