@@ -1,56 +1,79 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const calculateBtn = document.getElementById('calculate-btn');
-    const resultContainer = document.getElementById('result-container');
+// 核心八字计算引擎 - 加入大运排法和阴阳年判断
+function calculateBazi(year, month, day, hour, minute, gender, place) {
+    // 输入验证
+    if (year < 1900 || year > 2100) throw new Error('年份超出支持范围 (1900-2100)。');
+    if (month < 1 || month > 12) throw new Error('无效的月份。');
 
-    calculateBtn.addEventListener('click', () => {
-        resultContainer.innerHTML = ''; // 每次计算前清空旧结果
-        const birthDate = document.getElementById('birth-date').value;
-        const birthTime = document.getElementById('birth-time').value;
-        const birthPlace = document.getElementById('birth-place').value;
-        const gender = document.getElementById('gender').value;
+    // 根据出生地获取时区
+    const timezoneOffset = getTimezoneOffsetFromPlace(place);
+    hour = (hour + timezoneOffset + 24) % 24;
 
-        if (!birthDate || !birthTime || !birthPlace) {
-            alert('请输入完整的出生日期、时间和出生地。');
-            return;
-        }
+    // 创建Solar对象
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const baziChart = lunar.getEightChar();
 
-        const [year, month, day] = birthDate.split('-').map(Number);
-        const [hour, minute] = birthTime.split(':').map(Number);
-
-        // 调用Bazi引擎进行计算，并用try...catch捕获潜在错误
-        try {
-            const baziData = calculateBazi(year, month, day, hour, minute, gender, birthPlace);
-            displayResults(baziData);
-        } catch (error) {
-            console.error("计算或显示时发生错误:", error);
-            displayError(error.message);
-        } finally {
-            resultContainer.classList.remove('hidden');
-        }
+    // 计算大运
+    const yun = baziChart.getYun(gender === 'male' ? 1 : 0);
+    const startAge = yun.getStartAge();
+    const daYunList = yun.getDaYun();
+    
+    const luckPillars = daYunList.map((daYun, index) => {
+        const isYangYear = isYangYear(baziChart.getMonthGan());
+        const luck = isYangYear ? "顺排" : "逆排";  // 阴阳年判断
+        return {
+            startAge: startAge + index * 10,
+            endAge: startAge + index * 10 + 9,
+            ganZhi: daYun.getGanZhi(),
+            luck
+        };
     });
 
-    function displayResults(data) {
-        resultContainer.innerHTML = `
-            <h2>命盘分析结果</h2>
-            <div id="bazi-chart"></div>
-            <div id="day-master-info"></div>
-            <div id="luck-pillars"></div>
-            <div id="ten-gods-info"></div>
-        `;
-        displayBaziChart(data.fourPillars);
-        displayDayMasterInfo(data.dayMaster);
-        displayLuckPillars(data.luckPillars);
-        displayTenGodsInfo(data.tenGods);
-    }
+    // 完整的十神信息
+    const tenGods = {
+        year: {
+            gan: baziChart.getYearShiShenGan(),
+            zhi: baziChart.getYearShiShenZhi()
+        },
+        month: {
+            gan: baziChart.getMonthShiShenGan(),
+            zhi: baziChart.getMonthShiShenZhi()
+        },
+        day: {
+            gan: "日主", 
+            zhi: baziChart.getDayShiShenZhi()
+        },
+        hour: {
+            gan: baziChart.getTimeShiShenGan(),
+            zhi: baziChart.getTimeShiShenZhi()
+        }
+    };
 
-    // 显示错误信息
-    function displayError(message) {
-        resultContainer.innerHTML = `
-            <div class="error">
-                <h3>计算时发生错误</h3>
-                <p>${message}</p>
-                <p>请检查您的输入或刷新页面重试。</p>
-            </div>
-        `;
-    }
-});
+    return {
+        fourPillars: {
+            year: { gan: baziChart.getYearGan(), zhi: baziChart.getYearZhi() },
+            month: { gan: baziChart.getMonthGan(), zhi: baziChart.getMonthZhi() },
+            day: { gan: baziChart.getDayGan(), zhi: baziChart.getDayZhi() },
+            hour: { gan: baziChart.getTimeGan(), zhi: baziChart.getTimeZhi() }
+        },
+        dayMaster: {
+            gan: baziChart.getDayGan(),
+            element: baziChart.getDayGanWuXing()
+        },
+        luckPillars,
+        tenGods
+    };
+}
+
+// 判断是否为阳年
+function isYangYear(monthGan) {
+    const yangYears = ['甲', '丙', '戊', '庚', '王'];
+    return yangYears.includes(monthGan);
+}
+
+// 获取时区偏移
+function getTimezoneOffsetFromPlace(place) {
+    if (place === "北京") return 8;
+    if (place === "纽约") return -5;
+    return 0;
+}
