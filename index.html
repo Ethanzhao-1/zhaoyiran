@@ -3,45 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字命盘分析</title>
+    <title>八字命理网站</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="container">
-    <header>
-        <h1>八字命盘分析工具</h1>
-    </header>
-
-    <div class="input-form">
-        <div class="form-group">
-            <label for="birth-date">出生日期：</label>
-            <input type="date" id="birth-date" required>
+    <div class="container">
+        <header>
+            <h1>四柱八字命理分析</h1>
+        </header>
+        
+        <div class="input-form">
+            <div class="form-group">
+                <label for="birth-date">出生日期</label>
+                <input type="date" id="birth-date" required>
+            </div>
+            <div class="form-group">
+                <label for="birth-time">出生时间</label>
+                <input type="time" id="birth-time" required>
+            </div>
+            <div class="form-group">
+                <label for="birth-place">出生地</label>
+                <input type="text" id="birth-place" placeholder="请输入出生地" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">性别</label>
+                <select id="gender" required>
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                </select>
+            </div>
+            <button id="calculate-btn">计算命盘</button>
         </div>
-        <div class="form-group">
-            <label for="birth-time">出生时间：</label>
-            <input type="time" id="birth-time" required>
-        </div>
-        <div class="form-group">
-            <label for="birth-place">出生地：</label>
-            <input type="text" id="birth-place" placeholder="请输入城市或地区" required>
-        </div>
-        <div class="form-group">
-            <label for="gender">性别：</label>
-            <select id="gender">
-                <option value="male">男</option>
-                <option value="female">女</option>
-            </select>
-        </div>
-        <button id="calculate-btn">计算命盘</button>
+        
+        <div id="loading" class="hidden">正在计算，请稍等...</div>
+        <div id="result-container" class="hidden"></div>
     </div>
-
-    <div id="loading" class="hidden">正在计算...</div>
-    <div id="result-container" class="hidden"></div>
-</div>
-
-<script src="bazi_engine.js"></script>
-<script src="script.js"></script>
-
+    
+    <script src="bazi_engine.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
