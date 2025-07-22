@@ -1,757 +1,186 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘分析</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        
-        :root {
-            --primary-color: #8a6d3b;
-            --secondary-color: #d4b483;
-            --background-color: #fdfbf7;
-            --text-color: #333;
-            --light-text: #666;
-            --border-color: #e0d6c3;
-            --card-bg: #fff;
-            --shadow: 0 4px 12px rgba(0,0,0,0.08);
-            --success-color: #4caf50;
-            --error-color: #f44336;
+// 输入验证函数
+function isValidDateFormat(dateStr) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    return regex.test(dateStr);
+}
+
+function isValidTimeFormat(timeStr) {
+    const regex = /^\d{2}:\d{2}$/;
+    return regex.test(timeStr);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resultContainer = document.getElementById('result-container');
+
+    calculateBtn.addEventListener('click', () => {
+        resultContainer.innerHTML = ''; // 每次计算前清空旧结果
+        // 1. 获取用户输入
+        const birthDate = document.getElementById('birth-date').value;
+        const birthTime = document.getElementById('birth-time').value;
+        const gender = document.getElementById('gender').value;
+
+        // 输入验证
+        if (!birthDate || !isValidDateFormat(birthDate)) {
+            alert('请输入有效的出生日期，格式应为 YYYY-MM-DD。');
+            return;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+        if (!birthTime || !isValidTimeFormat(birthTime)) {
+            alert('请输入有效的出生时间，格式应为 HH:MM。');
+            return;
         }
-        
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background: linear-gradient(135deg, #f9f5f0 0%, #f0e9df 100%);
-            color: var(--text-color);
-            line-height: 1.6;
-            min-height: 100vh;
-            padding: 20px;
+
+        const [year, month, day] = birthDate.split('-').map(Number);
+        const [hour, minute] = birthTime.split(':').map(Number);
+
+        // 2. 调用 Bazi 引擎进行计算，并用 try...catch 捕获任何潜在错误
+        try {
+            const baziData = calculateBazi(year, month, day, hour, minute, gender);
+            displayResults(baziData);
+        } catch (error) {
+            console.error("计算或显示时发生错误:", error);
+            displayError(`计算时发生错误: ${error.message}. 请确保您的输入正确。`);
+        } finally {
+            resultContainer.classList.remove('hidden');
         }
-        
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        header {
-            background: linear-gradient(to right, var(--primary-color), #a0805a);
-            color: white;
-            text-align: center;
-            padding: 30px 20px;
-            position: relative;
-        }
-        
-        header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(to right, #c9a769, #d4b483, #c9a769);
-        }
-        
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .taiji-container {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            width: 70px;
-            height: 70px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        
-        .taiji {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(to bottom, black 0%, black 50%, white 50%, white 100%);
-            border-radius: 50%;
-            position: relative;
-        }
-        
-        .taiji::before, .taiji::after {
-            content: "";
-            position: absolute;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            border: 12px solid transparent;
-        }
-        
-        .taiji::before {
-            background: white;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 1px solid black;
-        }
-        
-        .taiji::after {
-            background: black;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 1px solid white;
-        }
-        
-        main {
-            padding: 30px;
-        }
-        
-        .input-form {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-        }
-        
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--primary-color);
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
-            background: var(--background-color);
-            transition: all 0.3s;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(138, 109, 59, 0.1);
-        }
-        
-        #calculate-btn {
-            display: block;
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(to right, var(--primary-color), #9c7d54);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(138, 109, 59, 0.25);
-            margin-top: 10px;
-        }
-        
-        #calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(138, 109, 59, 0.35);
-        }
-        
-        #calculate-btn:active {
-            transform: translateY(0);
-        }
-        
-        #calculate-btn i {
-            margin-right: 8px;
-        }
-        
-        #result-container {
-            background: white;
-            border-radius: 12px;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .result-header {
-            background: linear-gradient(to right, #f5f0e6, #e8dfd0);
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .result-header h2 {
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-        }
-        
-        .result-header h2 i {
-            margin-right: 10px;
-            background: var(--primary-color);
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .result-content {
-            padding: 30px;
-        }
-        
-        .result-section {
-            background: var(--background-color);
-            padding: 25px;
-            margin-bottom: 30px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            position: relative;
-        }
-        
-        .result-section h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
-            display: flex;
-            align-items: center;
-        }
-        
-        .result-section h3 i {
-            margin-right: 10px;
-            color: var(--secondary-color);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 14px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f9f5ef;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
-        .bazi-table td:first-child {
-            font-weight: 600;
-            background: #f9f5ef;
-        }
-        
-        .pillar-highlight {
-            background-color: rgba(138, 109, 59, 0.1) !important;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-        
-        .luck-pillar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .luck-pillar-item {
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            background: white;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .luck-pillar-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-color: var(--secondary-color);
-        }
-        
-        .luck-pillar-item .age {
-            font-size: 0.95em;
-            color: var(--light-text);
-            margin-bottom: 8px;
-        }
-        
-        .luck-pillar-item .ganzhi {
-            font-weight: bold;
-            font-size: 1.4em;
-            color: var(--primary-color);
-            margin: 5px 0;
-        }
-        
-        .element {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-        
-        .element-wood { background-color: #e8f5e9; color: #2e7d32; }
-        .element-fire { background-color: #ffebee; color: #c62828; }
-        .element-earth { background-color: #fff8e1; color: #f57f17; }
-        .element-metal { background-color: #e3f2fd; color: #1565c0; }
-        .element-water { background-color: #e0f7fa; color: #00838f; }
-        
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(138, 109, 59, 0.2);
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error {
-            background-color: #ffebee;
-            border: 1px solid #ffcdd2;
-            padding: 20px;
-            border-radius: 8px;
-            color: #c62828;
-            text-align: center;
-            margin: 20px;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 25px 30px;
-            background: #f5f2ec;
-            color: var(--light-text);
-            font-size: 0.9em;
-            line-height: 1.6;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .form-group {
-                min-width: 100%;
-            }
-            
-            .luck-pillar-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-            
-            header h1 {
-                font-size: 2rem;
-            }
-            
-            .taiji-container {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin: 15px auto;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="taiji-container">
-                <div class="taiji"></div>
+    });
+
+    // 主显示函数
+    function displayResults(data) {
+        resultContainer.innerHTML = `
+            <h2>命盘分析结果</h2>
+            <div id="bazi-chart"></div>
+            <div id="day-master-info"></div>
+            <div id="luck-pillars"></div>
+            <div id="ten-gods-info"></div>
+        `;
+        displayBaziChart(data.fourPillars);
+        displayDayMasterInfo(data.dayMaster);
+        displayLuckPillars(data.luckPillars);
+        displayTenGodsInfo(data.tenGods);
+    }
+
+    // 显示错误信息
+    function displayError(message) {
+        resultContainer.innerHTML = `
+            <div class="error">
+                <h3>计算时发生错误</h3>
+                <p>${message}</p>
+                <p>请检查您的输入或刷新页面重试。</p>
             </div>
-            <h1>八字排盘分析系统</h1>
-            <p>输入您的公历出生信息，获取专业八字命盘分析</p>
-        </header>
+        `;
+    }
 
-        <main>
-            <div class="input-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="birth-date"><i class="fas fa-calendar-alt"></i> 出生日期</label>
-                        <input type="date" id="birth-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="birth-time"><i class="fas fa-clock"></i> 出生时间</label>
-                        <input type="time" id="birth-time" required value="12:00">
-                    </div>
-                    <div class="form-group">
-                        <label for="gender"><i class="fas fa-venus-mars"></i> 性别</label>
-                        <select id="gender">
-                            <option value="male">男</option>
-                            <option value="female">女</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="calculate-btn"><i class="fas fa-calculator"></i> 开始排盘</button>
+    // 渲染四柱八字表格
+    function displayBaziChart(pillars) {
+        const container = document.getElementById('bazi-chart');
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>四柱八字</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>年柱</th>
+                            <th>月柱</th>
+                            <th>日柱</th>
+                            <th>时柱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>天干</strong></td>
+                            <td>${pillars.year.gan}</td>
+                            <td>${pillars.month.gan}</td>
+                            <td>${pillars.day.gan}</td>
+                            <td>${pillars.hour.gan}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>地支</strong></td>
+                            <td>${pillars.year.zhi}</td>
+                            <td>${pillars.month.zhi}</td>
+                            <td>${pillars.day.zhi}</td>
+                            <td>${pillars.hour.zhi}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+        `;
+    }
 
-            <div id="result-container" class="hidden">
-                <div class="result-header">
-                    <h2><i class="fas fa-star-and-crescent"></i> 命盘分析结果</h2>
-                </div>
-                <div class="result-content">
-                    <div class="loading-container" id="loading">
-                        <div class="loading-spinner"></div>
-                        <p>正在计算命盘，请稍候...</p>
-                    </div>
-                    <div id="result-content" class="hidden">
-                        <div id="bazi-chart"></div>
-                        <div id="day-master-info"></div>
-                        <div id="luck-pillars"></div>
-                        <div id="ten-gods-info"></div>
-                    </div>
-                </div>
+    // 渲染日主信息
+    function displayDayMasterInfo(dayMaster) {
+        const container = document.getElementById('day-master-info');
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>日主信息</h3>
+                <p>您的日主（日元）是：<strong>${dayMaster.gan} (${dayMaster.element})</strong></p>
+                <p>日主代表命主本人，是整个八字分析的核心。</p>
             </div>
-        </main>
+        `;
+    }
 
-        <footer>
-            <p>免责声明：本应用生成的命理分析仅供参考和娱乐，不构成任何专业建议。所有信息不应作为做出重大生活决策的唯一依据。命运掌握在自己手中，请理性看待命理分析结果。</p>
-        </footer>
-    </div>
+    // 渲染十年大运
+    function displayLuckPillars(luckPillars) {
+        const container = document.getElementById('luck-pillars');
+        let pillarsHtml = luckPillars.map(p => `
+            <div class="luck-pillar-item">
+                <div class="age">${p.startAge} - ${p.endAge}岁</div>
+                <div class="ganzhi">${p.ganZhi}</div>
+            </div>
+        `).join('');
 
-    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/lunar.min.js"></script>
-    <script>
-        // 八字引擎 - 修复版
-        function calculateBazi(year, month, day, hour, minute, gender) {
-            // 输入验证
-            if (year < 1900 || year > 2100) throw new Error('年份超出支持范围 (1900-2100)');
-            if (month < 1 || month > 12) throw new Error('无效的月份');
-            
-            // 创建Solar对象
-            const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-            const lunar = solar.getLunar();
-            const baziChart = lunar.getEightChar();
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>十年大运</h3>
+                <div class="luck-pillar-grid">${pillarsHtml}</div>
+            </div>
+        `;
+    }
 
-            // 获取大运信息
-            const yun = baziChart.getYun(gender === 'male' ? 1 : 0);
-            const startAge = yun.getStartAge();
-            const daYunList = yun.getDaYun();
-            
-            // 格式化大运
-            const luckPillars = daYunList.map((daYun, index) => ({
-                startAge: startAge + index * 10,
-                endAge: startAge + index * 10 + 9,
-                ganZhi: daYun.getGanZhi()
-            }));
+    // 渲染十神信息表格
+    function displayTenGodsInfo(tenGods) {
+        const container = document.getElementById('ten-gods-info');
+        // 辅助函数，确保地支十神总是数组并用'/'连接
+        const formatZhi = (zhi) => Array.isArray(zhi)? zhi.join(' / ') : zhi;
 
-            // 获取日主五行
-            const elementMap = {
-                '木': 'wood',
-                '火': 'fire',
-                '土': 'earth',
-                '金': 'metal',
-                '水': 'water'
-            };
-            const dayElement = baziChart.getDayGanWuXing();
-            const elementClass = elementMap[dayElement] || '';
-
-            // 完整十神信息
-            const tenGods = {
-                year: {
-                    gan: baziChart.getYearShiShenGan(),
-                    zhi: baziChart.getYearShiShenZhi()
-                },
-                month: {
-                    gan: baziChart.getMonthShiShenGan(),
-                    zhi: baziChart.getMonthShiShenZhi()
-                },
-                day: {
-                    gan: "日主",
-                    zhi: baziChart.getDayShiShenZhi()
-                },
-                hour: {
-                    gan: baziChart.getTimeShiShenGan(),
-                    zhi: baziChart.getTimeShiShenZhi()
-                }
-            };
-
-            // 返回数据结构
-            return {
-                fourPillars: {
-                    year: {
-                        gan: baziChart.getYearGan(),
-                        zhi: baziChart.getYearZhi(),
-                        ganZhi: baziChart.getYearInGanZhi()
-                    },
-                    month: {
-                        gan: baziChart.getMonthGan(),
-                        zhi: baziChart.getMonthZhi(),
-                        ganZhi: baziChart.getMonthInGanZhi()
-                    },
-                    day: {
-                        gan: baziChart.getDayGan(),
-                        zhi: baziChart.getDayZhi(),
-                        ganZhi: baziChart.getDayInGanZhi()
-                    },
-                    hour: {
-                        gan: baziChart.getTimeGan(),
-                        zhi: baziChart.getTimeZhi(),
-                        ganZhi: baziChart.getTimeInGanZhi()
-                    }
-                },
-                dayMaster: {
-                    gan: baziChart.getDayGan(),
-                    element: baziChart.getDayGanWuXing(),
-                    elementClass: elementClass
-                },
-                luckPillars,
-                tenGods
-            };
-        }
-
-        // 页面脚本
-        document.addEventListener('DOMContentLoaded', () => {
-            const calculateBtn = document.getElementById('calculate-btn');
-            const resultContainer = document.getElementById('result-container');
-            const loading = document.getElementById('loading');
-            const resultContent = document.getElementById('result-content');
-            
-            // 设置默认日期为30年前
-            const today = new Date();
-            const defaultDate = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate());
-            const formattedDate = defaultDate.toISOString().split('T')[0];
-            document.getElementById('birth-date').value = formattedDate;
-
-            calculateBtn.addEventListener('click', () => {
-                // 1. 获取用户输入
-                const birthDate = document.getElementById('birth-date').value;
-                const birthTime = document.getElementById('birth-time').value;
-                const gender = document.getElementById('gender').value;
-
-                if (!birthDate || !birthTime) {
-                    alert('请输入完整的出生日期和时间');
-                    return;
-                }
-
-                const [year, month, day] = birthDate.split('-').map(Number);
-                const [hour, minute] = birthTime.split(':').map(Number);
-
-                // 显示结果容器和加载状态
-                resultContainer.classList.remove('hidden');
-                loading.classList.remove('hidden');
-                resultContent.classList.add('hidden');
-                
-                // 延迟执行以显示加载效果
-                setTimeout(() => {
-                    try {
-                        // 2. 调用Bazi引擎
-                        const baziData = calculateBazi(year, month, day, hour, minute, gender);
-                        
-                        // 3. 显示结果
-                        displayResults(baziData);
-                        loading.classList.add('hidden');
-                        resultContent.classList.remove('hidden');
-                    } catch (error) {
-                        console.error("计算出错:", error);
-                        loading.classList.add('hidden');
-                        resultContent.innerHTML = `
-                            <div class="error">
-                                <h3><i class="fas fa-exclamation-triangle"></i> 计算失败</h3>
-                                <p>${error.message}</p>
-                                <p>请检查您的输入并重试</p>
-                            </div>
-                        `;
-                        resultContent.classList.remove('hidden');
-                    }
-                }, 800);
-            });
-
-            function displayResults(data) {
-                displayBaziChart(data.fourPillars);
-                displayDayMasterInfo(data.dayMaster);
-                displayLuckPillars(data.luckPillars);
-                displayTenGodsInfo(data.tenGods);
-            }
-
-            function displayBaziChart(pillars) {
-                const container = document.getElementById('bazi-chart');
-                container.innerHTML = `
-                    <div class="result-section">
-                        <h3><i class="fas fa-chart-bar"></i> 四柱八字</h3>
-                        <table class="bazi-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>年柱</th>
-                                    <th>月柱</th>
-                                    <th>日柱</th>
-                                    <th>时柱</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>天干</strong></td>
-                                    <td>${pillars.year.gan}</td>
-                                    <td>${pillars.month.gan}</td>
-                                    <td class="pillar-highlight">${pillars.day.gan}</td>
-                                    <td>${pillars.hour.gan}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>地支</strong></td>
-                                    <td>${pillars.year.zhi}</td>
-                                    <td>${pillars.month.zhi}</td>
-                                    <td class="pillar-highlight">${pillars.day.zhi}</td>
-                                    <td>${pillars.hour.zhi}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>干支</strong></td>
-                                    <td>${pillars.year.ganZhi}</td>
-                                    <td>${pillars.month.ganZhi}</td>
-                                    <td class="pillar-highlight">${pillars.day.ganZhi}</td>
-                                    <td>${pillars.hour.ganZhi}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
-
-            function displayDayMasterInfo(dayMaster) {
-                const container = document.getElementById('day-master-info');
-                container.innerHTML = `
-                    <div class="result-section">
-                        <h3><i class="fas fa-user"></i> 日主信息</h3>
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="font-size: 3.5rem; font-weight: bold; color: #8a6d3b;">
-                                ${dayMaster.gan}
-                            </div>
-                            <div>
-                                <p>您的日主（日元）是：<strong>${dayMaster.gan}</strong></p>
-                                <p>五行属性：<span class="element element-${dayMaster.elementClass}">${dayMaster.element}</span></p>
-                                <p style="margin-top: 15px; font-style: italic;">日主代表命主本人，是整个八字分析的核心，体现个人气质、性格特征和基本命运走向。</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function displayLuckPillars(luckPillars) {
-                const container = document.getElementById('luck-pillars');
-                let pillarsHtml = luckPillars.slice(0, 8).map(p => `
-                    <div class="luck-pillar-item">
-                        <div class="age">${p.startAge} - ${p.endAge}岁</div>
-                        <div class="ganzhi">${p.ganZhi}</div>
-                        <div class="period">大运周期</div>
-                    </div>
-                `).join('');
-
-                container.innerHTML = `
-                    <div class="result-section">
-                        <h3><i class="fas fa-chart-line"></i> 十年大运</h3>
-                        <p style="margin-bottom: 20px;">大运代表人生不同阶段的运势走向，每十年为一个大运周期：</p>
-                        <div class="luck-pillar-grid">${pillarsHtml}</div>
-                    </div>
-                `;
-            }
-
-            function displayTenGodsInfo(tenGods) {
-                const container = document.getElementById('ten-gods-info');
-                container.innerHTML = `
-                    <div class="result-section">
-                        <h3><i class="fas fa-chess-rook"></i> 十神信息</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>柱位</th>
-                                    <th>天干十神</th>
-                                    <th>地支十神</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>年柱</strong></td>
-                                    <td>${tenGods.year.gan}</td>
-                                    <td>${tenGods.year.zhi.join('、')}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>月柱</strong></td>
-                                    <td>${tenGods.month.gan}</td>
-                                    <td>${tenGods.month.zhi.join('、')}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>日柱</strong></td>
-                                    <td>${tenGods.day.gan}</td>
-                                    <td>${tenGods.day.zhi.join('、')}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>时柱</strong></td>
-                                    <td>${tenGods.hour.gan}</td>
-                                    <td>${tenGods.hour.zhi.join('、')}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p style="margin-top: 20px; font-style: italic;">
-                            十神代表日主与其他干支的关系，揭示了性格特征、人际关系和运势信息。其中：
-                            正官代表事业地位，七杀代表挑战竞争，正印代表学识贵人，偏印代表特殊才能，
-                            正财代表稳定收入，偏财代表意外之财，食神代表才艺享受，伤官代表创新反叛，
-                            比肩代表朋友同辈，劫财代表竞争破耗。
-                        </p>
-                    </div>
-                `;
-            }
-        });
-    </script>
-</body>
-</html>
+        container.innerHTML = `
+            <div class="result-section">
+                <h3>十神信息</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>柱位</th>
+                            <th>天干十神</th>
+                            <th>地支十神</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>年柱</strong></td>
+                            <td>${tenGods.year.gan}</td>
+                            <td>${formatZhi(tenGods.year.zhi)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>月柱</strong></td>
+                            <td>${tenGods.month.gan}</td>
+                            <td>${formatZhi(tenGods.month.zhi)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>日柱</strong></td>
+                            <td>${tenGods.day.gan}</td>
+                            <td>${formatZhi(tenGods.day.zhi)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>时柱</strong></td>
+                            <td>${tenGods.hour.gan}</td>
+                            <td>${formatZhi(tenGods.hour.zhi)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息。</p>
+            </div>
+        `;
+    }
+});
