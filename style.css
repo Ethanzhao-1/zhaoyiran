@@ -120,11 +120,6 @@ th {
     background-color: #f9f5ef;
 }
 
-.pillar {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
 .luck-pillar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -156,4 +151,24 @@ footer {
     border-top: 1px solid var(--border-color);
     font-size: 0.8em;
     color: #888;
+}
+
+/* 错误提示样式 */
+.error {
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+    padding: 15px;
+    border-radius: 6px;
+    color: #b71c1c;
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+   .luck-pillar-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    
+    table {
+        font-size: 14px;
+    }
 }
