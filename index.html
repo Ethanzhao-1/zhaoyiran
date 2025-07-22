@@ -1,44 +1,53 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四柱八字命理分析</title>
+    <title>八字排盘分析</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>四柱八字命理分析</h1>
+            <h1>八字排盘与分析</h1>
+            <p>输入您的公历出生信息以生成命盘</p>
         </header>
-        
-        <div class="input-form">
-            <div class="form-group">
-                <label for="birth-date">出生日期</label>
-                <input type="date" id="birth-date" required>
+
+        <main>
+            <div class="input-form">
+                <div class="form-group">
+                    <label for="birth-date">出生日期</label>
+                    <input type="date" id="birth-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="birth-time">出生时间</label>
+                    <input type="time" id="birth-time" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">性别</label>
+                    <select id="gender">
+                        <option value="male">男</option>
+                        <option value="female">女</option>
+                    </select>
+                </div>
+                <button id="calculate-btn">开始排盘</button>
             </div>
-            <div class="form-group">
-                <label for="birth-time">出生时间</label>
-                <input type="time" id="birth-time" required>
+
+            <div id="result-container" class="hidden">
+                <h2>命盘分析结果</h2>
+                <div id="bazi-chart"></div>
+                <div id="day-master-info"></div>
+                <div id="luck-pillars"></div>
+                <div id="ten-gods-info"></div>
             </div>
-            <div class="form-group">
-                <label for="birth-place">出生地</label>
-                <input type="text" id="birth-place" placeholder="请输入出生地" required>
-            </div>
-            <div class="form-group">
-                <label for="gender">性别</label>
-                <select id="gender" required>
-                    <option value="male">男</option>
-                    <option value="female">女</option>
-                </select>
-            </div>
-            <button id="calculate-btn">计算命盘</button>
-        </div>
-        
-        <div id="loading" class="hidden">正在计算，请稍等...</div>
-        <div id="result-container" class="hidden"></div>
+        </main>
+
+        <footer>
+            <p>免责声明：本应用生成的命理分析仅供参考和娱乐，不构成任何专业建议。所有信息不应作为做出重大生活决策的唯一依据。</p>
+        </footer>
     </div>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/lunar.min.js"></script>
     <script src="bazi_engine.js"></script>
     <script src="script.js"></script>
 </body>
