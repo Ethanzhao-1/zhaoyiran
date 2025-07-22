@@ -9,11 +9,15 @@ function calculateBazi(year, month, day, hour, minute, gender) {
     const lunar = solar.getLunar();
     
     // 获取八字命盘
-    // 这个库已经正确处理了节气，所以月柱和年柱是准确的 [8]
+    // 这个库已经正确处理了节气，所以月柱和年柱是准确的 [1]
     const baziChart = lunar.getEightChar();
 
-    // 获取大运信息
-    const luckPillars = baziChart.getYun(gender === 'male'? 1 : 0);
+    // --- BUG修复开始 ---
+    // 1. 获取包含大运信息的 Yun 对象
+    const yun = baziChart.getYun(gender === 'male'? 1 : 0);
+    // 2. 从 Yun 对象中获取大运数组
+    const luckPillarsArray = yun.getDaYun();
+    // --- BUG修复结束 ---
 
     // 获取日主信息
     const dayMaster = baziChart.getDayGan();
@@ -23,7 +27,7 @@ function calculateBazi(year, month, day, hour, minute, gender) {
     const tenGods = {
         year: baziChart.getYearShiShenGan(),
         month: baziChart.getMonthShiShenGan(),
-        day: baziChart.getDayShiShenZhi(), // 日支藏干的十神
+        day: baziChart.getDayShiShenZhi(), // 日支藏干的十神, 通常取第一个本气
         hour: baziChart.getTimeShiShenGan()
     };
 
@@ -51,8 +55,8 @@ function calculateBazi(year, month, day, hour, minute, gender) {
         }
     };
     
-    // 格式化大运
-    const formattedLuckPillars = luckPillars.map(p => ({
+    // 格式化大运 (现在使用正确的数组 luckPillarsArray)
+    const formattedLuckPillars = luckPillarsArray.map(p => ({
         startAge: p.getStartAge(),
         endAge: p.getEndAge(),
         ganZhi: p.getGanZhi()
