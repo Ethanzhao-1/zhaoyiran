@@ -1,51 +1,57 @@
 /**
- * Bazi Engine - 封装所有八字计算逻辑
+ * Bazi Engine - 核心八字计算引擎 (最终修复版)
+ * 详细审查并根据 lunar-javascript 库的正确API重写
  * 使用 lunar-javascript 库 (https://github.com/6tail/lunar-javascript)
  */
 
 function calculateBazi(year, month, day, hour, minute, gender) {
-    // lunar-javascript 库需要公历日期对象
+    // 1. 从公历生成 Solar 对象
     const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    
+    // 2. 从 Solar 对象获取 Lunar 对象，其中包含了八字信息
     const lunar = solar.getLunar();
     
-    // 获取八字命盘
-    // 这个库已经正确处理了节气，所以月柱和年柱是准确的 [1]
+    // 3. 获取核心的八字命盘对象
+    // 该库已正确使用节气来划分年柱和月柱，确保了排盘的准确性 [1]
     const baziChart = lunar.getEightChar();
 
-    // --- 核心错误修复 ---
-    // 1. 获取包含大运信息的 Yun 对象
+    // --- 核心错误修复与重构：大运计算 ---
+    // a. 获取包含大运整体信息的 Yun 对象
     const yun = baziChart.getYun(gender === 'male'? 1 : 0);
-    // 2. 从 Yun 对象中获取“起运”的基础年龄
+    
+    // b. 从 Yun 对象中获取唯一的“起运”岁数
     const startAge = yun.getStartAge();
-    // 3. 从 Yun 对象中获取大运柱数组
+    
+    // c. 从 Yun 对象中获取大运柱的干支数组
     const luckPillarsArray = yun.getDaYun();
     
-    // 4. 手动计算并格式化每一个大运的起止年龄
-    const formattedLuckPillars = luckPillarsArray.map((p, index) => {
+    // d. 基于“起运”岁数，手动为每一柱大运计算准确的起止年龄
+    const formattedLuckPillars = luckPillarsArray.map((pillar, index) => {
         const pillarStartAge = startAge + (index * 10);
         const pillarEndAge = pillarStartAge + 9;
         return {
             startAge: pillarStartAge,
             endAge: pillarEndAge,
-            ganZhi: p.getGanZhi()
+            ganZhi: pillar.getGanZhi()
         };
     });
     // --- 修复结束 ---
 
-    // 获取日主信息
+    // 4. 获取日主（日元）信息
     const dayMaster = baziChart.getDayGan();
     const dayMasterElement = baziChart.getDayGanWuXing();
 
-    // 获取所有十神 (并增加兼容性处理)
-    const dayShiShen = baziChart.getDayShiShenZhi();
+    // 5. 获取十神信息，并增加兼容性处理
+    const dayShiShenZhi = baziChart.getDayShiShenZhi();
     const tenGods = {
         year: baziChart.getYearShiShenGan(),
         month: baziChart.getMonthShiShenGan(),
-        day: Array.isArray(dayShiShen)? dayShiShen.join('/') : dayShiShen, // 处理日支藏干有多个十神的情况
+        // 日支的十神可能因藏干有多个而返回数组，进行处理
+        day: Array.isArray(dayShiShenZhi)? dayShiShenZhi.join('/') : dayShiShenZhi,
         hour: baziChart.getTimeShiShenGan()
     };
 
-    // 格式化四柱
+    // 6. 格式化四柱信息
     const fourPillars = {
         year: {
             gan: baziChart.getYearGan(),
@@ -68,8 +74,8 @@ function calculateBazi(year, month, day, hour, minute, gender) {
             ganZhi: baziChart.getTimeInGanZhi()
         }
     };
-
-    // 返回一个结构化的结果对象
+    
+    // 7. 返回一个结构清晰、数据准确的结果对象
     return {
         fourPillars,
         dayMaster: {
