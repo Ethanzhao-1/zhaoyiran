@@ -1,159 +1,156 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap');
+/* --- 全局与基础样式 --- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400&display=swap');
 
 :root {
-    --primary-color: #8a6d3b;
-    --background-color: #fdfbf7;
-    --text-color: #333;
-    --border-color: #ddd;
-    --card-bg: #fff;
-    --shadow: 0 2px 8px rgba(0,0,0,0.05);
+    --primary-bg: #1a122a; /* 深邃紫色 */
+    --text-color: #e0e0e0; /* 柔和白色 */
+    --accent-gold: #ffd700; /* 金色高光 */
+    --accent-glow: rgba(255, 215, 0, 0.5); /* 金色辉光 */
+    --card-bg: rgba(40, 30, 60, 0.7); /* 半透明卡片背景 */
+    --font-serif: 'Noto Serif SC', serif;
+    --font-sans: 'Noto Sans SC', sans-serif;
 }
 
 body {
-    font-family: 'Noto Sans SC', sans-serif;
-    background-color: var(--background-color);
+    background-color: var(--primary-bg);
     color: var(--text-color);
-    line-height: 1.6;
+    font-family: var(--font-sans);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     margin: 0;
-    padding: 20px;
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cg fill="%232a2040" fill-opacity="0.4"%3E%3Ccircle cx="50" cy="50" r="1"/%3E%3Ccircle cx="10" cy="10" r="1"/%3E%3Ccircle cx="90" cy="90" r="1"/%3E%3Ccircle cx="10" cy="90" r="1"/%3E%3Ccircle cx="90" cy="10" r="1"/%3E%3Ccircle cx="30" cy="70" r="1"/%3E%3Ccircle cx="70" cy="30" r="1"/%3E%3C/g%3E%3C/svg%3E');
 }
 
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: var(--card-bg);
-    padding: 20px 30px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-}
-
-header {
     text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 20px;
-    margin-bottom: 20px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
 }
 
-header h1 {
-    color: var(--primary-color);
-    margin: 0;
+/* --- 介绍部分 --- */
+.intro h1 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    color: var(--accent-gold);
+    margin-bottom: 0.5rem;
 }
 
-.input-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
+.intro p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+/* --- 表单与输入 (仪式) --- */
+.ritual-section {
+    margin-top: 2rem;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
-.form-group input,.form-group select {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 16px;
+.form-group input {
+    width: 80%;
+    padding: 0.8rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--accent-gold);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: var(--font-sans);
+    transition: box-shadow 0.3s ease;
 }
 
-#calculate-btn {
-    padding: 12px 20px;
-    background-color: var(--primary-color);
-    color: white;
+.form-group input:focus {
+    outline: none;
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* --- 按钮 (CTA) --- */
+.cta-button {
+    background-color: var(--accent-gold);
+    color: var(--primary-bg);
     border: none;
-    border-radius: 4px;
-    font-size: 18px;
+    padding: 1rem 2rem;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-#calculate-btn:hover {
-    background-color: #7a5f31;
+.cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
+/* --- 加载动画 --- */
+.loader {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.crystal-ball {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(173,216,230,0.5) 50%, rgba(75,0,130,0.7) 100%);
+    border-radius: 50%;
+    border: 2px solid var(--accent-gold);
+    box-shadow: 0 0 25px var(--accent-glow), inset 0 0 10px rgba(255,255,255,0.5);
+    animation: rotate 4s linear infinite, pulse 2s infinite ease-in-out;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 25px var(--accent-glow), inset 0 0 10px rgba(255,255,255,0.5); }
+    50% { box-shadow: 0 0 40px var(--accent-glow), inset 0 0 15px rgba(255,255,255,0.8); }
+}
+
+/* --- 结果卡片 (揭示) --- */
+.reveal-section {
+    margin-top: 2rem;
+}
+
+.result-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--accent-gold);
+    border-radius: 15px;
+    padding: 2rem;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.result-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.result-card h2 {
+    font-family: var(--font-serif);
+    color: var(--accent-gold);
+    margin-top: 0;
+}
+
+/* --- 辅助类 --- */
 .hidden {
     display: none;
-}
-
-#result-container h2 {
-    text-align: center;
-    color: var(--primary-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-.result-section {
-    background-color: var(--background-color);
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    border: 1px solid #eee;
-}
-
-.result-section h3 {
-    margin-top: 0;
-    color: var(--primary-color);
-    border-bottom: 1px solid #e0d6c3;
-    padding-bottom: 8px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-th, td {
-    border: 1px solid var(--border-color);
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background-color: #f9f5ef;
-}
-
-.pillar {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-.luck-pillar-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-}
-
-.luck-pillar-item {
-    border: 1px solid var(--border-color);
-    padding: 10px;
-    border-radius: 4px;
-    text-align: center;
-    background: #f9f5ef;
-}
-
-.luck-pillar-item .age {
-    font-size: 0.9em;
-    color: #666;
-}
-
-.luck-pillar-item .ganzhi {
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-footer {
-    text-align: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.8em;
-    color: #888;
 }
