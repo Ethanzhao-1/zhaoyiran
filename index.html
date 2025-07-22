@@ -3,52 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>八字排盘分析</title>
+    <title>神秘命运占卜</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>八字排盘与分析</h1>
-            <p>输入您的公历出生信息以生成命盘</p>
+    <main class="container">
+        <header class="intro">
+            <h1>揭示你的命运</h1>
+            <p>输入你的信息，让星辰与魔法指引你前方的道路。</p>
         </header>
 
-        <main>
-            <div class="input-form">
+        <section id="ritual" class="ritual-section">
+            <form id="fortuneForm">
                 <div class="form-group">
-                    <label for="birth-date">出生日期</label>
-                    <input type="date" id="birth-date" required>
+                    <label for="userName">你的名字:</label>
+                    <input type="text" id="userName" name="userName" placeholder="例如：阿尔忒弥斯" required>
                 </div>
                 <div class="form-group">
-                    <label for="birth-time">出生时间</label>
-                    <input type="time" id="birth-time" required>
+                    <label for="birthDate">你的出生日期:</label>
+                    <input type="date" id="birthDate" name="birthDate" required>
                 </div>
-                <div class="form-group">
-                    <label for="gender">性别</label>
-                    <select id="gender">
-                        <option value="male">男</option>
-                        <option value="female">女</option>
-                    </select>
-                </div>
-                <button id="calculate-btn">开始排盘</button>
+                <button type="submit" id="calculateBtn" class="cta-button">探寻未来</button>
+            </form>
+        </section>
+
+        <div id="loader" class="loader hidden">
+            <div class="crystal-ball"></div>
+            <p>水晶球正在汇聚能量...</p>
+        </div>
+
+        <section id="reveal" class="reveal-section hidden">
+            <div id="resultCard" class="result-card">
+                <h2 id="resultTitle">智慧女神的启示</h2>
+                <p id="resultText">你的运势正在显现...</p>
             </div>
-
-            <div id="result-container" class="hidden">
-                <h2>命盘分析结果</h2>
-                <div id="bazi-chart"></div>
-                <div id="day-master-info"></div>
-                <div id="luck-pillars"></div>
-                <div id="ten-gods-info"></div>
-            </div>
-        </main>
-
-        <footer>
-            <p>免责声明：本应用生成的命理分析仅供参考和娱乐，不构成任何专业建议。所有信息不应作为做出重大生活决策的唯一依据。</p>
-        </footer>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.3/lunar.min.js"></script>
-    <script src="bazi_engine.js"></script>
-    <script src="script.js"></script>
+        </section>
+    </main>
 </body>
 </html>
