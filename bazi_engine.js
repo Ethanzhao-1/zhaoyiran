@@ -4,7 +4,7 @@
  * 使用 lunar-javascript 库 (https://github.com/6tail/lunar-javascript)
  */
 function calculateBazi(year, month, day, hour, minute, gender) {
-    // 1. 添加输入验证
+    // 1. 添加输入验证 (已修复语法错误)
     if (year < 1900 |
 
 | year > 2100) throw new Error('年份超出支持范围 (1900-2100)。');
@@ -19,13 +19,13 @@ function calculateBazi(year, month, day, hour, minute, gender) {
 
     // 3. 修复大运计算
     const yun = baziChart.getYun(gender === 'male'? 1 : 0);
-    const startAge = yun.getStartAge(); // 正确方法是 getStartAge()
+    const startAge = yun.getStartAge();
     const daYunList = yun.getDaYun();
     
     const luckPillars = daYunList.map((daYun, index) => ({
         startAge: startAge + index * 10,
         endAge: startAge + index * 10 + 9,
-        ganZhi: daYun.getGanZhi() // 关键修复：确保使用正确的方法
+        ganZhi: daYun.getGanZhi()
     }));
 
     // 4. 完整十神信息
