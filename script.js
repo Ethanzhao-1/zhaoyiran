@@ -1,10 +1,9 @@
-
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const calculateBtn = document.getElementById('calculate-btn');
     const resultContainer = document.getElementById('result-container');
 
     calculateBtn.addEventListener('click', () => {
-        resultContainer.innerHTML = ''; // 清空旧结果
+        resultContainer.innerHTML = ''; // 每次计算前清空旧结果
         // 1. 获取用户输入
         const birthDate = document.getElementById('birth-date').value;
         const birthTime = document.getElementById('birth-time').value;
@@ -100,7 +99,7 @@
             <div class="result-section">
                 <h3>日主信息</h3>
                 <p>您的日主（日元）是：<strong>${dayMaster.gan} (${dayMaster.element})</strong></p>
-                <p>日主代表命主本人，是整个八字分析的核心 [2]。</p>
+                <p>日主代表命主本人，是整个八字分析的核心 [6]。</p>
             </div>
         `;
     }
@@ -163,7 +162,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息 [3, 4]。</p>
+                <p>十神代表日主与其他干支的关系，揭示了性格、人际关系和运势等信息 [7]。</p>
             </div>
         `;
     }
