@@ -164,7 +164,7 @@ footer {
 
 /* 响应式调整 */
 @media (max-width: 600px) {
-   .luck-pillar-grid {
+  .luck-pillar-grid {
         grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     }
     
